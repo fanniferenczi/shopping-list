@@ -1,5 +1,5 @@
 export interface ShoppingItem {
-    id: number;
-    name: string;
-    bought: boolean;
+  id: number;
+  name: string;
+  bought: boolean;
 }
