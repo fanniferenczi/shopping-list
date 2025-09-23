@@ -7,6 +7,7 @@ import { provideRouter } from '@angular/router';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getAuth, provideAuth } from '@angular/fire/auth';
+import { provideAnalytics, getAnalytics } from '@angular/fire/analytics';
 
 import { routes } from './app.routes';
 
@@ -17,6 +18,7 @@ const firebaseConfig = {
   storageBucket: 'shopping-list-eb050.firebasestorage.app',
   messagingSenderId: '928814225023',
   appId: '1:928814225023:web:45b6ebf3e995322489514a',
+  measurementId: 'G-RKSPH4TN0H',
 };
 
 export const appConfig: ApplicationConfig = {
@@ -27,5 +29,6 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideFirestore(() => getFirestore()),
     provideAuth(() => getAuth()),
+    provideAnalytics(() => getAnalytics()),
   ],
 };

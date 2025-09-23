@@ -6,6 +6,7 @@ import { ShoppingListService } from '../services/shopping-list.service';
 import { ShoppingItem } from '../models/shopping-item.interface';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { Analytics, logEvent } from '@angular/fire/analytics';
 
 @Component({
   selector: 'app-shopping-list',
@@ -197,7 +198,7 @@ export class ShoppingListComponent {
   pendingPageIndex = 0;
   boughtPageIndex = 0;
 
-  constructor(private shoppingListService: ShoppingListService) {
+  constructor(private shoppingListService: ShoppingListService, private analytics: Analytics) {
     this.shoppingListService.getItems().subscribe((items) => {
       this.items = items;
     });
@@ -234,14 +235,17 @@ export class ShoppingListComponent {
   async addItem(name: string): Promise<void> {
     if (name.trim()) {
       await this.shoppingListService.addItem(name.trim());
+      logEvent(this.analytics, 'add_item', { itemName: name.trim() });
     }
   }
 
   async toggleItem(id: string): Promise<void> {
     await this.shoppingListService.toggleItemStatus(id);
+    logEvent(this.analytics, 'toggle_item', { itemId: id });
   }
 
   async deleteItem(id: string): Promise<void> {
     await this.shoppingListService.deleteItem(id);
+    logEvent(this.analytics, 'delete_item', { itemId: id });
   }
 }
