@@ -36,7 +36,9 @@ import { MatIconModule } from '@angular/material/icon';
                 <button (click)="deleteItem(item.id)" class="icon-btn">
                   <mat-icon>delete</mat-icon>
                 </button>
-                <button (click)="toggleItem(item.id)">↩</button>
+                <button (click)="toggleItem(item.id)" class="icon-btn-toggle">
+                  <mat-icon class="done">done</mat-icon>
+                </button>
               </div>
             </li>
             }
@@ -61,7 +63,9 @@ import { MatIconModule } from '@angular/material/icon';
                 <button (click)="deleteItem(item.id)" class="icon-btn">
                   <mat-icon>delete</mat-icon>
                 </button>
-                <button (click)="toggleItem(item.id)">↩</button>
+                <button (click)="toggleItem(item.id)" class="icon-btn-toggle">
+                  <mat-icon class="return">refresh</mat-icon>
+                </button>
               </div>
             </li>
             }
@@ -146,6 +150,23 @@ import { MatIconModule } from '@angular/material/icon';
         margin-top: 10px;
       }
 
+      li button.icon-btn-toggle {
+        min-width: 0; /* remove default min-width */
+        width: 28px; /* optional: fix size */
+        height: 28px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #2196f3; /* blue for toggle */
+      }
+
+      .done {
+        padding-right: 22px;
+      }
+      .return {
+        padding-right: 24px;
+      }
+
       li button.icon-btn {
         padding: 10px 4px 4px 4px; /* less padding than text buttons */
         min-width: 0; /* remove default min-width */
@@ -160,8 +181,6 @@ import { MatIconModule } from '@angular/material/icon';
 
       li button.icon-btn mat-icon {
         font-size: 16px; /* keep it small */
-        /*line-height: 0;*/
-
         display: block;
       }
       li .button-group {

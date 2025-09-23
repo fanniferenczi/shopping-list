@@ -1,6 +1,7 @@
 import { Injectable, OnInit } from '@angular/core';
 import { Auth, signInAnonymously, onAuthStateChanged, User, authState } from '@angular/fire/auth';
 import { BehaviorSubject } from 'rxjs';
+import { ShoppingListService } from './shopping-list.service';
 
 @Injectable({
   providedIn: 'root',

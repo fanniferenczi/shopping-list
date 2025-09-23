@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { firstValueFrom, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, firstValueFrom } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 import {
   Firestore,
   collection,
@@ -12,37 +12,35 @@ import {
   orderBy,
   query,
 } from '@angular/fire/firestore';
-import { ShoppingItem } from '../models/shopping-item.interface';
 import { AuthService } from './auth.service';
+import { ShoppingItem } from '../models/shopping-item.interface';
 
 @Injectable({ providedIn: 'root' })
 export class ShoppingListService {
   private collectionName = 'shopping-items';
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
+  private collectionRef = collection(this.firestore, this.collectionName);
   private docRef = (id: string) => doc(this.collectionRef, id);
 
-  // create the collectionRef during initialization (DI context)
-  private collectionRef = collection(this.firestore, this.collectionName);
-
-  // CALL collectionData() here (during service initialization) so it's inside the injection context
-  private items$ = collectionData(query(this.collectionRef, orderBy('lastModifiedAt', 'desc')), {
-    idField: 'id',
-  }).pipe(
-    map((items) => items as ShoppingItem[]),
-    map((items) =>
-      items.sort((a, b) => {
-        if (a.bought !== b.bought) {
-          return a.bought ? 1 : -1;
-        }
-        return b.lastModifiedAt - a.lastModifiedAt;
-      })
-    )
-  );
-
-  // keep API simple — return the already-created observable
+  // Observable that waits for auth before querying Firestore
   getItems(): Observable<ShoppingItem[]> {
-    return this.items$;
+    return this.authService.user$.pipe(
+      switchMap((user) => {
+        if (!user) return []; // return empty until auth ready
+        const q = query(this.collectionRef, orderBy('lastModifiedAt', 'desc'));
+        return collectionData(q, { idField: 'id' });
+      }),
+      map((items: any[]) => items as ShoppingItem[]),
+      map((items) =>
+        items.sort((a, b) => {
+          if (a.bought !== b.bought) {
+            return a.bought ? 1 : -1;
+          }
+          return b.lastModifiedAt - a.lastModifiedAt;
+        })
+      )
+    );
   }
 
   async addItem(name: string): Promise<void> {
