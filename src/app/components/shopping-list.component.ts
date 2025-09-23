@@ -1,14 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { ShoppingListService } from '../services/shopping-list.service';
 import { ShoppingItem } from '../models/shopping-item.interface';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatPaginatorModule],
+  imports: [CommonModule, FormsModule, MatPaginatorModule, MatButtonModule, MatIconModule],
   template: `
     <div class="shopping-list">
       <h2>Shopping List</h2>
@@ -30,7 +32,12 @@ import { ShoppingItem } from '../models/shopping-item.interface';
             @for (item of pendingItems; track item.id) {
             <li>
               {{ item.name }}
-              <button (click)="toggleItem(item.id)">✓</button>
+              <div class="button-group">
+                <button (click)="deleteItem(item.id)" class="icon-btn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                <button (click)="toggleItem(item.id)">↩</button>
+              </div>
             </li>
             }
           </ul>
@@ -50,7 +57,12 @@ import { ShoppingItem } from '../models/shopping-item.interface';
             @for (item of boughtItems; track item.id) {
             <li>
               <span class="bought">{{ item.name }}</span>
-              <button (click)="toggleItem(item.id)">↩</button>
+              <div class="button-group">
+                <button (click)="deleteItem(item.id)" class="icon-btn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                <button (click)="toggleItem(item.id)">↩</button>
+              </div>
             </li>
             }
           </ul>
@@ -133,6 +145,30 @@ import { ShoppingItem } from '../models/shopping-item.interface';
         background: transparent;
         margin-top: 10px;
       }
+
+      li button.icon-btn {
+        padding: 10px 4px 4px 4px; /* less padding than text buttons */
+        min-width: 0; /* remove default min-width */
+        width: 28px; /* optional: fix size */
+        height: 28px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f44336; /* red for delete */
+        border-radius: 50%; /* circular */
+      }
+
+      li button.icon-btn mat-icon {
+        font-size: 16px; /* keep it small */
+        /*line-height: 0;*/
+
+        display: block;
+      }
+      li .button-group {
+        display: flex;
+        gap: 12px; /* space between delete and toggle */
+        align-items: center; /* vertically center buttons */
+      }
     `,
   ],
 })
@@ -176,13 +212,17 @@ export class ShoppingListComponent {
     this.boughtPageIndex = event.pageIndex;
   }
 
-  addItem(name: string): void {
+  async addItem(name: string): Promise<void> {
     if (name.trim()) {
-      this.shoppingListService.addItem(name.trim());
+      await this.shoppingListService.addItem(name.trim());
     }
   }
 
-  toggleItem(id: number): void {
-    this.shoppingListService.toggleItemStatus(id);
+  async toggleItem(id: string): Promise<void> {
+    await this.shoppingListService.toggleItemStatus(id);
+  }
+
+  async deleteItem(id: string): Promise<void> {
+    await this.shoppingListService.deleteItem(id);
   }
 }

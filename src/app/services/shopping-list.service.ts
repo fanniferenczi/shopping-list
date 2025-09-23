@@ -1,55 +1,79 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { firstValueFrom, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  orderBy,
+  query,
+} from '@angular/fire/firestore';
 import { ShoppingItem } from '../models/shopping-item.interface';
+import { AuthService } from './auth.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class ShoppingListService {
-  private items: ShoppingItem[] = [];
-  private itemsSubject = new BehaviorSubject<ShoppingItem[]>([]);
+  private collectionName = 'shopping-items';
+  private firestore = inject(Firestore);
+  private authService = inject(AuthService);
+  private docRef = (id: string) => doc(this.collectionRef, id);
 
-  constructor() {}
+  // create the collectionRef during initialization (DI context)
+  private collectionRef = collection(this.firestore, this.collectionName);
 
+  // CALL collectionData() here (during service initialization) so it's inside the injection context
+  private items$ = collectionData(query(this.collectionRef, orderBy('lastModifiedAt', 'desc')), {
+    idField: 'id',
+  }).pipe(
+    map((items) => items as ShoppingItem[]),
+    map((items) =>
+      items.sort((a, b) => {
+        if (a.bought !== b.bought) {
+          return a.bought ? 1 : -1;
+        }
+        return b.lastModifiedAt - a.lastModifiedAt;
+      })
+    )
+  );
+
+  // keep API simple — return the already-created observable
   getItems(): Observable<ShoppingItem[]> {
-    return this.itemsSubject.asObservable();
+    return this.items$;
   }
 
-  addItem(name: string): void {
-    const newItem: ShoppingItem = {
-      id: Date.now(),
+  async addItem(name: string): Promise<void> {
+    const now = Date.now();
+    await addDoc(this.collectionRef, {
       name,
       bought: false,
-    };
-    this.items.push(newItem);
-    this.itemsSubject.next([...this.items]);
+      timestamp: now,
+      lastModifiedBy: this.authService.getUserId(),
+      lastModifiedAt: now,
+    });
   }
 
-  toggleItemStatus(id: number): void {
-    const itemIndex = this.items.findIndex((item) => item.id === id);
-    if (itemIndex === -1) return;
+  async toggleItemStatus(id: string): Promise<void> {
+    const docRef = this.docRef(id);
 
-    const item = this.items[itemIndex];
-    const updatedItem = { ...item, bought: !item.bought };
+    const item = await firstValueFrom(
+      this.getItems().pipe(map((items) => items.find((item) => item.id === id)))
+    );
 
-    // Remove the item from its current position
-    this.items.splice(itemIndex, 1);
-
-    if (updatedItem.bought) {
-      // If item is marked as bought, add it to the beginning of the array
-      this.items.unshift(updatedItem);
-    } else {
-      // If item is unmarked, add it back to the end of non-bought items
-      const lastNonBoughtIndex = this.items.findIndex((i) => i.bought);
-      if (lastNonBoughtIndex === -1) {
-        // If no bought items, add to end
-        this.items.push(updatedItem);
-      } else {
-        // Insert before first bought item
-        this.items.splice(lastNonBoughtIndex, 0, updatedItem);
-      }
+    if (item) {
+      await updateDoc(docRef, {
+        bought: !item.bought,
+        lastModifiedBy: this.authService.getUserId(),
+        lastModifiedAt: Date.now(),
+      });
     }
+  }
 
-    this.itemsSubject.next([...this.items]);
+  async deleteItem(id: string): Promise<void> {
+    const docRef = this.docRef(id);
+    await deleteDoc(docRef);
   }
 }
