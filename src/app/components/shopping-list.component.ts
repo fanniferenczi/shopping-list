@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -233,25 +233,57 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
     `,
   ],
 })
-export class ShoppingListComponent {
+export class ShoppingListComponent implements OnDestroy {
   items: ShoppingItem[] = [];
   pageSize = 10;
   pendingPageIndex = 0;
   boughtPageIndex = 0;
   daysUntilAugust9: number = 0;
+  private countdownInterval: any;
+  private visibilityChangeListener: any;
 
   constructor(private shoppingListService: ShoppingListService, private analytics: Analytics) {
     this.shoppingListService.getItems().subscribe((items) => {
       this.items = items;
     });
     this.calculateDaysUntilAugust9();
-
-    // Update countdown every day
-    setInterval(() => {
-      this.calculateDaysUntilAugust9();
-    }, 24 * 60 * 60 * 1000); // Update every 24 hours
+    this.setupCountdownUpdates();
   }
 
+  ngOnDestroy(): void {
+    // Clean up intervals and listeners to prevent memory leaks
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+    if (this.visibilityChangeListener) {
+      document.removeEventListener('visibilitychange', this.visibilityChangeListener);
+    }
+  }
+
+  private setupCountdownUpdates(): void {
+    // Calculate time until next midnight
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const msUntilMidnight = tomorrow.getTime() - now.getTime();
+
+    // Update at midnight, then every 24 hours
+    setTimeout(() => {
+      this.calculateDaysUntilAugust9();
+      this.countdownInterval = setInterval(() => {
+        this.calculateDaysUntilAugust9();
+      }, 24 * 60 * 60 * 1000);
+    }, msUntilMidnight);
+
+    // Also update when user returns to the tab (in case they left it open for days)
+    this.visibilityChangeListener = () => {
+      if (!document.hidden) {
+        this.calculateDaysUntilAugust9();
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityChangeListener);
+  }
   private calculateDaysUntilAugust9(): void {
     const today = new Date();
     const currentYear = today.getFullYear();
