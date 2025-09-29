@@ -14,7 +14,12 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
   imports: [CommonModule, FormsModule, MatPaginatorModule, MatButtonModule, MatIconModule],
   template: `
     <div class="shopping-list">
-      <h2>Shopping List</h2>
+      <div class="header-container">
+        <h2>Shopping List</h2>
+        <div class="countdown">
+          <span class="countdown-text">{{ daysUntilAugust9 }} days until Jeppe's birthday! 🥳</span>
+        </div>
+      </div>
 
       <div class="add-item">
         <input
@@ -89,6 +94,42 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
         max-width: 600px;
         margin: 0 auto;
         padding: 20px;
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .header-container h2 {
+        margin: 0;
+      }
+
+      .countdown {
+        background-color: #f0f0f0;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+      }
+
+      .countdown-text {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      @media (max-width: 480px) {
+        .header-container {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .countdown {
+          align-self: flex-end;
+        }
       }
 
       .add-item {
@@ -197,11 +238,32 @@ export class ShoppingListComponent {
   pageSize = 10;
   pendingPageIndex = 0;
   boughtPageIndex = 0;
+  daysUntilAugust9: number = 0;
 
   constructor(private shoppingListService: ShoppingListService, private analytics: Analytics) {
     this.shoppingListService.getItems().subscribe((items) => {
       this.items = items;
     });
+    this.calculateDaysUntilAugust9();
+
+    // Update countdown every day
+    setInterval(() => {
+      this.calculateDaysUntilAugust9();
+    }, 24 * 60 * 60 * 1000); // Update every 24 hours
+  }
+
+  private calculateDaysUntilAugust9(): void {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    let august9 = new Date(currentYear, 7, 9); // Month is 0-indexed, so 7 = August
+
+    // If August 9th has already passed this year, calculate for next year
+    if (today > august9) {
+      august9 = new Date(currentYear + 1, 7, 9);
+    }
+
+    const timeDiff = august9.getTime() - today.getTime();
+    this.daysUntilAugust9 = Math.ceil(timeDiff / (1000 * 3600 * 24));
   }
 
   get pendingItems(): ShoppingItem[] {
