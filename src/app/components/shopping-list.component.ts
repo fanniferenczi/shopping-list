@@ -17,7 +17,9 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
       <div class="header-container">
         <h2>Shopping List</h2>
         <div class="countdown">
-          <span class="countdown-text">{{ daysUntilAugust9 }} days until Jeppe's birthday! 🥳</span>
+          <span class="countdown-text"
+            >{{ daysUntilNovember14 }} days until Tour de Chambre! 🥳</span
+          >
         </div>
       </div>
 
@@ -238,7 +240,7 @@ export class ShoppingListComponent implements OnDestroy {
   pageSize = 10;
   pendingPageIndex = 0;
   boughtPageIndex = 0;
-  daysUntilAugust9: number = 0;
+  daysUntilNovember14: number = 0;
   private countdownInterval: any;
   private visibilityChangeListener: any;
 
@@ -246,7 +248,7 @@ export class ShoppingListComponent implements OnDestroy {
     this.shoppingListService.getItems().subscribe((items) => {
       this.items = items;
     });
-    this.calculateDaysUntilAugust9();
+    this.calculateDaysUntilNovember14();
     this.setupCountdownUpdates();
   }
 
@@ -270,32 +272,32 @@ export class ShoppingListComponent implements OnDestroy {
 
     // Update at midnight, then every 24 hours
     setTimeout(() => {
-      this.calculateDaysUntilAugust9();
+      this.calculateDaysUntilNovember14();
       this.countdownInterval = setInterval(() => {
-        this.calculateDaysUntilAugust9();
+        this.calculateDaysUntilNovember14();
       }, 24 * 60 * 60 * 1000);
     }, msUntilMidnight);
 
     // Also update when user returns to the tab (in case they left it open for days)
     this.visibilityChangeListener = () => {
       if (!document.hidden) {
-        this.calculateDaysUntilAugust9();
+        this.calculateDaysUntilNovember14();
       }
     };
     document.addEventListener('visibilitychange', this.visibilityChangeListener);
   }
-  private calculateDaysUntilAugust9(): void {
+  private calculateDaysUntilNovember14(): void {
     const today = new Date();
     const currentYear = today.getFullYear();
-    let august9 = new Date(currentYear, 7, 9); // Month is 0-indexed, so 7 = August
+    let november14 = new Date(currentYear, 10, 13); // Month is 0-indexed, so 10 = November, day 14 is the 13th
 
-    // If August 9th has already passed this year, calculate for next year
-    if (today > august9) {
-      august9 = new Date(currentYear + 1, 7, 9);
+    // If November 14th has already passed this year, calculate for next year
+    if (today > november14) {
+      november14 = new Date(currentYear + 1, 10, 13);
     }
 
-    const timeDiff = august9.getTime() - today.getTime();
-    this.daysUntilAugust9 = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    const timeDiff = november14.getTime() - today.getTime();
+    this.daysUntilNovember14 = Math.ceil(timeDiff / (1000 * 3600 * 24));
   }
 
   get pendingItems(): ShoppingItem[] {
