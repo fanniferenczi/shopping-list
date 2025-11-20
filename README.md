@@ -36,7 +36,7 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
-# Build and host in Github Pages:
+### Build and host in Github Pages:
 
 Install the Angular CLI GitHub Pages tool:
 
