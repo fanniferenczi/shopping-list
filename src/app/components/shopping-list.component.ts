@@ -17,9 +17,7 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
       <div class="header-container">
         <h2>Shopping List</h2>
         <div class="countdown">
-          <span class="countdown-text"
-            >{{ daysUntilNovember14 }} days until Tour de Chambre! 🥳</span
-          >
+          <span class="countdown-text">{{ daysUntilDec5 }} days until Christmas Party! 🥳</span>
         </div>
       </div>
 
@@ -80,7 +78,7 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
           </ul>
           <mat-paginator
             [length]="boughtItemsCount"
-            [pageSize]="pageSize"
+            [pageSize]="boughtPageSize"
             [pageIndex]="boughtPageIndex"
             (page)="onBoughtPageChange($event)"
             aria-label="Select page of bought items"
@@ -238,9 +236,10 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
 export class ShoppingListComponent implements OnDestroy {
   items: ShoppingItem[] = [];
   pageSize = 10;
+  boughtPageSize = 5;
   pendingPageIndex = 0;
   boughtPageIndex = 0;
-  daysUntilNovember14: number = 0;
+  daysUntilDec5: number = 0;
   private countdownInterval: any;
   private visibilityChangeListener: any;
 
@@ -248,7 +247,7 @@ export class ShoppingListComponent implements OnDestroy {
     this.shoppingListService.getItems().subscribe((items) => {
       this.items = items;
     });
-    this.calculateDaysUntilNovember14();
+    this.calculateDaysUntilDec5();
     this.setupCountdownUpdates();
   }
 
@@ -272,32 +271,32 @@ export class ShoppingListComponent implements OnDestroy {
 
     // Update at midnight, then every 24 hours
     setTimeout(() => {
-      this.calculateDaysUntilNovember14();
+      this.calculateDaysUntilDec5();
       this.countdownInterval = setInterval(() => {
-        this.calculateDaysUntilNovember14();
+        this.calculateDaysUntilDec5();
       }, 24 * 60 * 60 * 1000);
     }, msUntilMidnight);
 
     // Also update when user returns to the tab (in case they left it open for days)
     this.visibilityChangeListener = () => {
       if (!document.hidden) {
-        this.calculateDaysUntilNovember14();
+        this.calculateDaysUntilDec5();
       }
     };
     document.addEventListener('visibilitychange', this.visibilityChangeListener);
   }
-  private calculateDaysUntilNovember14(): void {
+  private calculateDaysUntilDec5(): void {
     const today = new Date();
     const currentYear = today.getFullYear();
-    let november14 = new Date(currentYear, 10, 13); // Month is 0-indexed, so 10 = November, day 14 is the 13th
+    let dec5 = new Date(currentYear, 11, 5); // Month is 0-indexed, so 11 = December, day 6 is the 5th
 
     // If November 14th has already passed this year, calculate for next year
-    if (today > november14) {
-      november14 = new Date(currentYear + 1, 10, 13);
+    if (today > dec5) {
+      dec5 = new Date(currentYear + 1, 11, 6);
     }
 
-    const timeDiff = november14.getTime() - today.getTime();
-    this.daysUntilNovember14 = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    const timeDiff = dec5.getTime() - today.getTime();
+    this.daysUntilDec5 = Math.ceil(timeDiff / (1000 * 3600 * 24));
   }
 
   get pendingItems(): ShoppingItem[] {
@@ -308,8 +307,8 @@ export class ShoppingListComponent implements OnDestroy {
 
   get boughtItems(): ShoppingItem[] {
     const bought = this.items.filter((item) => item.bought);
-    const startIndex = this.boughtPageIndex * this.pageSize;
-    return bought.slice(startIndex, startIndex + this.pageSize);
+    const startIndex = this.boughtPageIndex * this.boughtPageSize;
+    return bought.slice(startIndex, startIndex + this.boughtPageSize);
   }
 
   get pendingItemsCount(): number {
