@@ -36,6 +36,26 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+# Build and host in Github Pages:
+
+Install the Angular CLI GitHub Pages tool:
+
+```bash
+ng add angular-cli-ghpages
+```
+
+Build the project:
+
+```bash
+ng build --configuration production --base-href "/shopping-list/"
+```
+
+Host on Github Pages:
+
+```bash
+npx angular-cli-ghpages --dir=dist/shopping-list/browser
+```
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
